@@ -110,14 +110,23 @@ public class EventBus {
 
     EventBus(EventBusBuilder builder) {
         logger = builder.getLogger();
+        // 根据事件类型的订阅集合, key是订阅者对象
         subscriptionsByEventType = new HashMap<>();
+        //
         typesBySubscriber = new HashMap<>();
+        // 粘性事件
         stickyEvents = new ConcurrentHashMap<>();
+        // 主线程支持实现接口
         mainThreadSupport = builder.getMainThreadSupport();
+        // 事件主线程处理
         mainThreadPoster = mainThreadSupport != null ? mainThreadSupport.createPoster(this) : null;
+        // 后台事件处理
         backgroundPoster = new BackgroundPoster(this);
+        // 异步事件处理
         asyncPoster = new AsyncPoster(this);
+        //
         indexCount = builder.subscriberInfoIndexes != null ? builder.subscriberInfoIndexes.size() : 0;
+        // 订阅方法查找器
         subscriberMethodFinder = new SubscriberMethodFinder(builder.subscriberInfoIndexes,
                 builder.strictMethodVerification, builder.ignoreGeneratedIndex);
         logSubscriberExceptions = builder.logSubscriberExceptions;
@@ -139,8 +148,10 @@ public class EventBus {
      */
     public void register(Object subscriber) {
         Class<?> subscriberClass = subscriber.getClass();
+        // 获取对应subscriber类的订阅方法
         List<SubscriberMethod> subscriberMethods = subscriberMethodFinder.findSubscriberMethods(subscriberClass);
         synchronized (this) {
+            // 遍历执行订阅
             for (SubscriberMethod subscriberMethod : subscriberMethods) {
                 subscribe(subscriber, subscriberMethod);
             }
@@ -148,6 +159,12 @@ public class EventBus {
     }
 
     // Must be called in synchronized block
+
+    /**
+     * 订阅动作
+     * @param subscriber
+     * @param subscriberMethod
+     */
     private void subscribe(Object subscriber, SubscriberMethod subscriberMethod) {
         Class<?> eventType = subscriberMethod.eventType;
         Subscription newSubscription = new Subscription(subscriber, subscriberMethod);
