@@ -162,39 +162,47 @@ public class EventBus {
 
     /**
      * 订阅动作
-     * @param subscriber
-     * @param subscriberMethod
+     * @param subscriber         订阅者(类似订阅的Activity之类)
+     * @param subscriberMethod   订阅事件方法, 比如加了@Subscribe注解的方法
      */
     private void subscribe(Object subscriber, SubscriberMethod subscriberMethod) {
+        // 订阅事件的类, 比如平常传递的自己写的EventSubscriber等等..
         Class<?> eventType = subscriberMethod.eventType;
         Subscription newSubscription = new Subscription(subscriber, subscriberMethod);
+        // 获取与eventType有关的订阅事件的队列
         CopyOnWriteArrayList<Subscription> subscriptions = subscriptionsByEventType.get(eventType);
+        // 如果为空
         if (subscriptions == null) {
+            // 初始队列
             subscriptions = new CopyOnWriteArrayList<>();
             subscriptionsByEventType.put(eventType, subscriptions);
         } else {
+            // 如果管理的订阅队列存在新的订阅事件, 则抛出已注册事件的异常
             if (subscriptions.contains(newSubscription)) {
                 throw new EventBusException("Subscriber " + subscriber.getClass() + " already registered to event "
                         + eventType);
             }
         }
-
         int size = subscriptions.size();
+        // 遍历订阅的事件
         for (int i = 0; i <= size; i++) {
+            // 根据优先级, 插入订阅事件
             if (i == size || subscriberMethod.priority > subscriptions.get(i).subscriberMethod.priority) {
                 subscriptions.add(i, newSubscription);
                 break;
             }
         }
-
+        // 以订阅者为key, value为订阅事件的类的队列
         List<Class<?>> subscribedEvents = typesBySubscriber.get(subscriber);
         if (subscribedEvents == null) {
             subscribedEvents = new ArrayList<>();
             typesBySubscriber.put(subscriber, subscribedEvents);
         }
         subscribedEvents.add(eventType);
-
+        // TODO: 2018/3/29 理解粘性 yutt
+        // 是否粘性事件(粘性???)
         if (subscriberMethod.sticky) {
+            // 是否分发订阅了响应事件类父类事件的方法, 默认为true
             if (eventInheritance) {
                 // Existing sticky events of all subclasses of eventType have to be considered.
                 // Note: Iterating over all events may be inefficient with lots of sticky events,

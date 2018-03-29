@@ -23,6 +23,7 @@ public class SubscriberMethod {
     final Method method;
     // 执行线程
     final ThreadMode threadMode;
+    // 订阅事件的类
     final Class<?> eventType;
     // 优先级
     final int priority;
