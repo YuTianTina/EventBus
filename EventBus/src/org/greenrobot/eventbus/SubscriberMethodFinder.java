@@ -59,7 +59,7 @@ class SubscriberMethodFinder {
         if (subscriberMethods != null) {
             return subscriberMethods;
         }
-        // 查找注册方法
+        // 查找注册方法, 默认false
         if (ignoreGeneratedIndex) {
             // 使用反射查找
             subscriberMethods = findUsingReflection(subscriberClass);

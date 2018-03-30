@@ -45,6 +45,8 @@ public class TestRunnerActivity extends Activity {
         textViewResult = findViewById(R.id.textViewResult);
         controlBus = new EventBus();
         controlBus.register(this);
+
+        
     }
 
     @Override
